@@ -61,11 +61,13 @@ class Page:
 
     def __eq__(self, other):
         return getattr(other, '_api', None) == self._api and \
-               (getattr(other, 'title', None) == self.title or getattr(other, 'pageid', None) == self.pageid)
+            (getattr(other, 'title', None) == self.title or getattr(
+                other, 'pageid', None) == self.pageid)
 
     def __ne__(self, other):
         return getattr(other, '_api', None) == self._api and \
-               (getattr(other, 'title', None) == self.title or getattr(other, 'pageid', None) == self.pageid)
+            (getattr(other, 'title', None) == self.title or getattr(
+                other, 'pageid', None) == self.pageid)
 
     def identity(self):
         """Return a ``{key: value}`` that can be used in API queries.
@@ -80,7 +82,8 @@ class Page:
         l = (("titles", "title"),  ("pageids", "pageid"), ("revids", "revid"))
         l = ((k, getattr(self, v, None)) for k, v in l)
         for k, v in l:
-            if v: return {k: v}
+            if v:
+                return {k: v}
 
     def load_attributes(self, res=None):
         """Call this to load ``self.__title``, ``._is_redirect``, ``._pageid``,
@@ -204,7 +207,8 @@ class Page:
             if edittype != 'create':
                 ec_timestamp = ec_timestamp_res['revisions'][0]['timestamp']
                 edit_params['basetimestamp'] = ec_timestamp
-                edit_params['starttimestamp'] = strftime("%Y-%m-%dT%H:%M:%SZ", gmtime())
+                edit_params['starttimestamp'] = strftime(
+                    "%Y-%m-%dT%H:%M:%SZ", gmtime())
             # Add a checksum to ensure that the text is not corrupted
             edit_params['md5'] = md5(content.encode("utf-8")).hexdigest()
         if edittype == 'append':
@@ -382,7 +386,17 @@ class Page:
             "noredirect": not redirect,
         }
         move_params = {k: v for (k, v) in move_params.items() if v}
-        move_params['token'] = self._api.tokens['move']
+
+        try:
+            move_params['token'] = self._api.tokens['move']
+        except KeyError:
+            self._api.set_token("move")
+            move_params['token'] = self._api.tokens.get('move', None)
+
+            if move_params['token'] is None:
+                err = "You do not have the move permission"
+                raise exc.PermissionsError(err)
+
         if move_params['token'] is None:
             self._api.set_token("move")
             if move_params['token'] is None:

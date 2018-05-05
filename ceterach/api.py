@@ -383,7 +383,7 @@ class MediaWiki:
         while True:
             res = self.call(params, rawcontinue='', **more_params)
             # print("QUERY")
-            if isinstance(res['query'], list):
+            if not 'query' in res or isinstance(res['query'], list):
                 return
             res['query'].pop("normalized", 0)
             res['query'].pop("redirects", 0)
